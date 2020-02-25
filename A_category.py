@@ -5,6 +5,9 @@ import serial
 import time
 import RPi.GPIO as GPIO
 
+
+
+
 ser = serial.Serial("/dev/ttyUSB0",115200)  # change ACM number as found from ls /dev/tty/ACM* выбор 0-го последовательнного порта для общения межу платами
 ser.baudrate = 115200  # скорость порта
 GPIO.setmode(GPIO.BOARD)
