@@ -14,13 +14,13 @@ int switchPin =15;
 //int ForwardSpeedPin2 = 5; //мотор 1 управление скоростью 
 
 int curSpeed = 0;
-const int maxSpeed=1700; //1544
-const int LowSpeed = 1700; //1539
+const int maxSpeed=1690; //1544
+const int LowSpeed = 1690; //1539
 double kf = (maxSpeed - LowSpeed)/30.0; 
 const int StopSpeed = 1500;
 const int RoadSpeed=1530;
 const int ObgonSpeed=1560;
-const int ReverseSpeed=1400;
+const int ReverseSpeed=1200;
 const bool debug=false;
 bool IsStop=0, ClearWay=1;
 
@@ -100,9 +100,7 @@ void ReverseRun(){
     motor.writeMicroseconds(StopSpeed);
   delay(100);
   motor.writeMicroseconds(ReverseSpeed);
-  delay(2000);
-  stop();
-  delay(2000);
+  delay(500);
 }
 void Calculet(int Line)
 {      
@@ -201,7 +199,7 @@ void loop()
 			  }
 			  else if (inString.indexOf("Stop")!=-1) {
 				    stop();
-				    delay(2000);
+				    //delay(2000);
 			  }
 			  else if (inString.indexOf("Reverse")!=-1) {
 			        stop();
