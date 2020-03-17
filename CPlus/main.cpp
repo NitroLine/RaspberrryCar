@@ -2,7 +2,6 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/videoio.hpp"
-#include "line.h"
 #include "line2.h"
 #include <time.h>
 using namespace std;
@@ -59,81 +58,75 @@ if ( tcsetattr ( USB, TCSANOW, &tty ) != 0) {
 void serWrite(string inpt){
 	unsigned char cmd[13];
 	strcpy((char*)cmd, inpt.c_str());
-    int n_written = 0,
-        spot = 0;
+	int n_written = 0,
+		spot = 0;
 	
-    do {
-        n_written = write( USB, &cmd[spot], 1 );
-        spot += n_written;
-    } while (cmd[spot-1] != '\r' && n_written > 0);
-    
+	do {
+		n_written = write( USB, &cmd[spot], 1 );
+		spot += n_written;
+	} while (cmd[spot-1] != '\r' && n_written > 0);
+	
 }
 
 int main() {
-    
-    VideoCapture cap(0);
+	
+	VideoCapture cap(0);
 	if (!cap.isOpened())
-    {
-        cout << "Can't open camera!";
-        return -1;
-    }
-    Mat frame, frame_threshold;
-    int View = 370, old_angle = 90;
-    serWrite("Start#\r");
-    time_t startTime = time(NULL);
-    int k=0;
-    bool started=false;
-    while (true) {
-        if (!started && time(NULL) - startTime > 5)
-        {
-             cout << "I_AM_READY\n";
-             serWrite("Start#\r");
-             started=true;
+	{
+		cout << "Can't open camera!";
+		return -1;
+	}
+	Mat frame, frame_threshold;
+	int View = 370, old_angle = 90;
+	serWrite("Start#\r");
+	time_t startTime = time(NULL);
+	int k=0;
+	bool started=false;
+	while (true) {
+		if (!started && time(NULL) - startTime > 5)
+		{
+			 cout << "I_AM_READY\n";
+			 //cout << "HELLO";
+			 //serWrite("Start#\r");
+			 started=true;
 			 
 		}
-        cap >> frame;
-        if (frame.empty())
-            break;
-        Mat gray;
-        //gray = line::TransformImage(frame, View, Scalar(0, 0, 0), Scalar(188, 255, 32), false);
-        //int x = line::FindLine(frame, gray, View, true);
-        //if (x==0)
-          //  x=640;
-        if (started){
-        int x = line2::FindLine(frame, minold, View,false);
-        
-        if (x==640 && minold!=640){
-            k++;
-            x=minold;
-            if (k>0){
+		cap >> frame;
+		if (frame.empty())
+			break;
 
-           // cout << "KOSTYALILPIP" << endl;
-            k=0;
-            minold=640;
-            }
-        }
-        else{
-            k=0;
-            minold=x;
-        }
-        if (x==640)
-            View=460;
-        else
-            View=370;
-        string cmd ="Line*" +to_string(x)+"#\r";
-        
-        serWrite(cmd);
-        //cout << x << endl;
-        }
-        else{
-            imshow("waiting...",frame);
-        }
-        char key = (char)waitKey(1);
-        if (key == 'q' || key == 27){
-			serWrite("End#\r");
-            break;
+		line2::StartWithSvet2(frame);
+
+		int x = line2::FindLine(frame, minold, View,false);
+		
+		if (x==640 && minold!=640){
+			k++;
+			x=minold;
+			if (k>0){
+
+		   // cout << "KOSTYALILPIP" << endl;
+			k=0;
+			minold=640;
+			}
 		}
-    }
-    return 0;
+		else{
+			k=0;
+			minold=x;
+		}
+		if (x==640)
+			View=460;
+		else
+			View=370;
+		string cmd ="Line*" +to_string(x)+"#\r";
+		imshow("image", frame);
+		//serWrite(cmd);
+		//cout << x << endl;
+		char key = (char)waitKey(1);
+		if (key == 'q' || key == 27){
+			serWrite("End#\r");
+			break;
+		}
+	}
+	return 0;
  
 }
