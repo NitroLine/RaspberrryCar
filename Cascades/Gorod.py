@@ -10,8 +10,8 @@ ser.baudrate = 115200  # скорость порта
 GPIO.setmode(GPIO.BOARD)
 
 cap = cv2.VideoCapture(0)
-files = ['stopgitCas.xml', 'roadCas.xml', 'preim2.6Znak5.xml', 'preim2.7Znak5.xml']
-nameSing = ["Stop", "Road", "advantageRound", "advantageSquare"]
+files = ['stopgitCas.xml', 'svetCas3.xml','pedUs.xml']
+nameSing = ["Stop", "Svet","Pedus"]
 cascades = dict()
 for i in range(len(files)):
     cascades[nameSing[i]] = cv2.CascadeClassifier(files[i])
@@ -55,38 +55,39 @@ def detect3xCircle(gray, frame, debug=True):
 
 
 def clasificateCirlce(frame, debug=True):
-	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	gray = cv2.blur(gray, (3, 3))
-
-	frame, circles = detect3xCircle(gray, frame)
-
-	if (len(circles) == 3):
-		circles = sorted(circles, key=lambda x:x[1])
-		
-		for ind in range(3):
-			x, y, r = circles[ind]
-			blue, green, red = frame[y-1][x-1][0], frame[y-1][x-1][1], frame[y-1][x-1][2]
-
-			if (ind == 0): # red color
-				print("reds--> {}, {}, {}".format(red, green, blue))
-				if (red >= 200 and green >= 20 and blue >= 20):
-					cv2.circle(frame, (x, y), 1, (255, 0, 0), 2)
-					print("RED FOUND")
-					break
-			elif (ind == 1): # yellow color
-				print("yellow--> {}, {}, {}".format(red, green, blue))
-				if (red >= 200 and green >= 200 and blue >= 20):
-					cv2.circle(frame, (x, y), 1, (255, 0, 0), 2)
-					print("YELLOW FOUND")
-					break
-			else:
-				print("green--> {}, {}, {}".format(red, green, blue))
-				if (red >= 20 and green >= 190 and blue >= 0):
-					cv2.circle(frame, (x, y), 1, (255, 0, 0), 2)
-					print("GREEN FOUND")
-					break
-	if (debug):	
-		cv2.imshow("Detected Circle", frame) 
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.blur(gray, (3, 3))
+    height, weight,g = frame.shape
+    circles = [[height//6,weight//2,5],[height//2,weight//2,5],[5*height//6,weight//2,5]]
+    
+    for ind in range(3):
+        y,x, r = circles[ind]
+        blue, green, red = frame[y-1][x-1][0], frame[y-1][x-1][1], frame[y-1][x-1][2]
+        com =None
+        if (ind == 0): # red color
+            print("reds--> {}, {}, {}".format(red, green, blue))
+            if (red >= 200 and green >= 20 and blue >= 20):
+                cv2.circle(frame, (x, y), 1, (255, 0, 0), 2)
+                com="RED"
+                print("RED FOUND")
+                break
+        elif (ind == 1): # yellow color
+            print("yellow--> {}, {}, {}".format(red, green, blue))
+            if (red >= 200 and green >= 200 and blue >= 10):
+                cv2.circle(frame, (x, y), 1, (255, 0, 0), 2)
+                com="YELLOW"
+                print("YELLOW FOUND")
+                break
+        else:
+            print("green--> {}, {}, {}".format(red, green, blue))
+            if (red >= 20 and green >= 190 and blue >= 0):
+                com="GREEN"
+                cv2.circle(frame, (x, y), 1, (255, 0, 0), 2)
+                print("GREEN FOUND")
+                break
+    if (debug):	
+        cv2.imshow("Detected Circle", frame) 
+    return com
 
 
 def FindSingBox(img,debug=False,save=False,Canny=False):
@@ -171,35 +172,33 @@ def preprocess_img(imgBGR, erode_dilate=True):
 
 
 def ClassificateByCascade(img):
-    img = cv2.resize(img, (60, 60))
+    #img = cv2.resize(img, (60, 60))
     allfound = []
     for a in cascades:
         s = cascades[a].detectMultiScale(img)
         for (ex, ey, ew, eh) in s:
-            allfound.append([ew * eh, a])
+            cv2.rectangle(roFrame, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 1)
+            allfound.append([ew * eh + ey, a,img[ey:ey+eh,ex:ex+ew]])
     if len(allfound) == 0:
         return 0
 
-    BigestSing = max(allfound, key=lambda x: x[0])[1]
-    print("I found " + BigestSing)
-    actionForSing(BigestSing)
+    BigestSing = max(allfound, key=lambda x: x[0])
+    print("I found " + BigestSing[1])
+    actionForSing(BigestSing[1],BigestSing[2])
     return time.time()
 
 
-def actionForSing(sing):
-    if "advantageSquare" == sing:
-        com = "Obgon#"
-        print(com)
-    elif "advantageRound" == sing:
-        com = "Reverse#"
+def actionForSing(sing,img):
+    if "Pedus" == sing:
+        com = "Pedus#"
         print(com)
     elif "Stop" == sing:
         com = "Stop#"
         print(com)  # debug
-    elif "Road" == sing:
-        com = "Road#"
+    elif "Svet" == sing:
+        com = clasificateCirlce(img,True)
         print(com)
-    send2Arduino(com)
+   #send2Arduino(com)
 
 kernel = np.ones((5, 5), np.uint8)
 
@@ -234,28 +233,29 @@ def FindSvetofor(img,debug=False):
 
 
 def classificateSvetCollor(img,debug=False):
-    img = cv2.resize(img, (60, 120))
+    #img = cv2.resize(img, (60, 120))
+    height, weight,g = img.shape
     v = img[:, :, 2]
     if debug:
         cv2.imshow("v", v)
-        cv2.imshow("red", v[10:40, 15:44])
-        cv2.imshow("yellow", v[40:74, 15:44])
-        cv2.imshow("green", v[75:110, 15:44])
-    red_sum = np.sum(v[10:40, 15:44])
-    yellow_sum = np.sum(v[40:74, 15:44])
-    green_sum = np.sum(v[75:110, 15:44])
+        cv2.imshow("red", v[0:height//3, 1:weight])
+        cv2.imshow("yellow", v[height//3+2:2*height//3, 1:weight])
+        cv2.imshow("green", v[2*height//3+2:height, 1:weight])
+    red_sum = np.sum(v[0:height//3, 1:weight])
+    yellow_sum = np.sum(v[height//3+2:2*height//3, 1:weight])
+    green_sum = np.sum(v[2*height//3+2:height, 1:weight])
     maxCol = max(red_sum, max(yellow_sum, green_sum))
-    print("Founded maximum color:" +str(maxCol))
+    #print("Founded maximum color:" +str(maxCol))
     if maxCol < 20000:
         return 0
     if maxCol == red_sum:
-        com = "Light*1#"
+        com = "Light*RED#"
     elif maxCol == yellow_sum:
-        com = "Light*3#"
+        com = "Light*YELLOW#"
     elif maxCol == green_sum:
-        com = "Light*2#"
+        com = "Light*GREEN#"
     print(com)  # debug
-    send2Arduino(com)
+    #send2Arduino(com)
     return time.time()
 
 def line2FindLine(img,minold,View,debug=False):
@@ -315,38 +315,40 @@ while True:
         if not started and time.time()-startTime>6:
             print("I_AM_READY")
             send2Arduino("Start#")
-            started=1
+            started=144
         
         ret, img = cap.read()
         roFrame = img[:300, 350:]
         #cv2.imshow("InputVideo", img)
         if (started):
             if time.time()-lastTrafficTime>1:
-                clasificateCirlce(roFrame)
+                ClassificateByCascade(roFrame)
+                cv2.imshow("Ro", roFrame)
                 # lastTrafficTime = FindSvetofor(roFrame,False)
             #if time.time()-lastTime>6 or save:
             #    roIm=FindSingBox(roFrame,debug,save)
             
             #img,x,View = Lin.CheckLine(img,x,View)
-            x=line2FindLine(img,minold,View,debug)
-            print(x)
-            if (x==640 and minold!=640):
-                kkk+=1
-                x=minold
-                if (kkk>0):
-                    print("Not autocontrast")
-                    k=0
-                    minold=640
-            else:
-                kkk=0
-                minold=x
-            if x==640:
-                View=460
-            else:
-                View=370
-            send2Arduino("Line*"+str(x)+"#")
-        else:
-            cv2.imshow("InputVideo", img)
+        #x=line2FindLine(img,minold,View,debug)
+        #     print(x)
+        #     if (x==640 and minold!=640):
+        #         kkk+=1
+        #         x=minold
+        #         if (kkk>0):
+        #             print("Not autocontrast")
+        #             k=0
+        #             minold=640
+        #     else:
+        #         kkk=0
+        #         minold=x
+        #     if x==640:
+        #         View=460
+        #     else:
+        #         View=370
+        #     send2Arduino("Line*"+str(x)+"#")
+        # else:
+        #     cv2.imshow("InputVideo", img)
+        cv2.imshow("InputVideo", img)
         ch = cv2.waitKey(1)
         if save:
             if len(roIm)>1:
