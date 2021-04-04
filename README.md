@@ -1,10 +1,13 @@
 # RaspberrryCar
 
 # AUTORUN instruction
-cd /etc/xdg/autostart/
+Run this commands in terminal
+```
+cd /etc/xdg/autostart/ 
 sudo nano autoruncode.desktop 
-
-Paste it into file and save 
+```
+In opened window paste this and save and exit by clicking CTRL + X
+```
 [Desktop Entry] 
 Version=1.0 
 Encoding=UTF-8 
@@ -13,10 +16,18 @@ Comment=hren
 Exec=sh /home/pi/script.sh
 Type=Application
 Terminal=true
-
+```
+Now go to home folder
+```
 cd ~
+```
+Create script
+```
 nano script.sh
-paste code
+```
+paste your bash code in this file <br/>
+Example code:
+```
 #!/bin/bash
 sleep 1
 echo "Hi"
@@ -24,3 +35,5 @@ echo "Hi"
 #Example:
 cd /home/pi/code/Cascade
 sudo python3 /home/pi/code/Cascade/C_Category.py
+```
+Exit and save. Now script should start, when desktop loaded
