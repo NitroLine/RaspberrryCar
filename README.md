@@ -1,15 +1,15 @@
 # RaspberrryCar
 
 # AUTORUN instruction
-cd /etc/xdg/autostart/ \n
-sudo nano autoruncode.desktop \n
+cd /etc/xdg/autostart/
+sudo nano autoruncode.desktop 
 
-Paste it into file and save \n
-[Desktop Entry] \n
-Version=1.0 \n
-Encoding=UTF-8 \n
-Name=1 \n
-Comment=hren \n
+Paste it into file and save 
+[Desktop Entry] 
+Version=1.0 
+Encoding=UTF-8 
+Name=1 
+Comment=hren 
 Exec=sh /home/pi/script.sh
 Type=Application
 Terminal=true
