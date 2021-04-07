@@ -1,4 +1,9 @@
 # RaspberrryCar
+Код для машинки Raspberry Pi + Arduino Mega
+- A_Category - тест рекации на распознование знаков
+- B_Category - гонки/скорость. Лучший код на C++
+- C_Category - город: движение + распознование 
+
 
 # AUTORUN instruction
 Run this commands in terminal
